@@ -1,0 +1,187 @@
+-- [[ Opex Hub - Rayfield Edition ]] --
+
+local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+
+local Window = Rayfield:CreateWindow({
+   Name = "Opex Hub | Universal",
+   LoadingTitle = "Loading Opex Hub...",
+   LoadingSubtitle = "Opex Hub",
+   ConfigurationSaving = {
+      Enabled = true,
+      FolderName = "OpexHubConfig",
+      FileName = "OpexMain"
+   },
+   Discord = {
+      Enabled = true,
+      Invite = "https://discord.gg/DE5tFhSpU",
+      RememberJoins = true
+   },
+   KeySystem = false
+})
+
+-- [[ Variables & States ]] --
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+local RunService = game:GetService("RunService")
+
+local flySpeed = 50
+local flying = false
+local noclip = false
+local cframeConnection
+
+-- [[ Tabs ]] --
+local MainTab = Window:CreateTab("Main", 4483362458) -- Info icon
+local MovementTab = Window:CreateTab("Movement", 4483362458) -- Movement/Player icon
+
+-- [[ Main Tab Elements ]] --
+MainTab:CreateSection("Welcome")
+
+MainTab:CreateLabel("Welcome to Opex Hub, " .. LocalPlayer.Name .. "!")
+
+MainTab:CreateButton({
+   Name = "Destroy UI",
+   Callback = function()
+      Rayfield:Destroy()
+   end,
+})
+
+-- [[ Movement Tab Elements ]] --
+MovementTab:CreateSection("Character Modifiers")
+
+-- WalkSpeed Slider
+MovementTab:CreateSlider({
+   Name = "WalkSpeed",
+   Range = {16, 250},
+   Increment = 1,
+   Suffix = " studs/s",
+   CurrentValue = 16,
+   Flag = "WalkSpeedSlider",
+   Callback = function(Value)
+      if LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid") then
+         LocalPlayer.Character:FindFirstChildOfClass("Humanoid").WalkSpeed = Value
+      end
+   end,
+})
+
+-- JumpPower Slider
+MovementTab:CreateSlider({
+   Name = "JumpPower",
+   Range = {50, 500},
+   Increment = 1,
+   Suffix = " power",
+   CurrentValue = 50,
+   Flag = "JumpPowerSlider",
+   Callback = function(Value)
+      if LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid") then
+         local hum = LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+         hum.UseJumpPower = true
+         hum.JumpPower = Value
+      end
+   end,
+})
+
+MovementTab:CreateSection("Abilities")
+
+-- Noclip Toggle
+MovementTab:CreateToggle({
+   Name = "Noclip",
+   CurrentValue = false,
+   Flag = "NoclipToggle",
+   Callback = function(Value)
+      noclip = Value
+      if noclip then
+         cframeConnection = RunService.Stepped:Connect(function()
+            if LocalPlayer.Character and noclip then
+               for _, part in pairs(LocalPlayer.Character:GetDescendants()) do
+                  if part:IsA("BasePart") then
+                     part.CanCollide = false
+                  end
+               end
+            end
+         end)
+      else
+         if cframeConnection then
+            cframeConnection:Disconnect()
+         end
+      end
+   end,
+})
+
+-- Fly Toggle
+MovementTab:CreateToggle({
+   Name = "Fly (Basic)",
+   CurrentValue = false,
+   Flag = "FlyToggle",
+   Callback = function(Value)
+      flying = Value
+      local char = LocalPlayer.Character
+      if not char or not char:FindFirstChild("HumanoidRootPart") then return end
+      
+      local hrp = char.HumanoidRootPart
+      
+      if flying then
+         local bv = Instance.new("BodyVelocity")
+         bv.Name = "OpexFly"
+         bv.maxForce = Vector3.new(0, 0, 0)
+         bv.velocity = Vector3.new(0, 0, 0)
+         bv.Parent = hrp
+         
+         local bg = Instance.new("BodyGyro")
+         bg.Name = "OpexGyro"
+         bg.maxTorque = Vector3.new(0, 0, 0)
+         bg.cframe = hrp.CFrame
+         bg.Parent = hrp
+         
+         task.spawn(function()
+            while flying and task.wait() do
+               local cam = workspace.CurrentCamera
+               bv.maxForce = Vector3.new(4e5, 4e5, 4e5)
+               bg.maxTorque = Vector3.new(4e5, 4e5, 4e5)
+               bg.cframe = cam.CFrame
+               
+               local moveDir = Vector3.new(0,0,0)
+               if game:GetService("UserInputService"):IsKeyDown(Enum.KeyCode.W) then
+                  moveDir = moveDir + cam.CFrame.LookVector
+               end
+               if game:GetService("UserInputService"):IsKeyDown(Enum.KeyCode.S) then
+                  moveDir = moveDir - cam.CFrame.LookVector
+               end
+               if game:GetService("UserInputService"):IsKeyDown(Enum.KeyCode.A) then
+                  moveDir = moveDir - cam.CFrame.RightVector
+               end
+               if game:GetService("UserInputService"):IsKeyDown(Enum.KeyCode.D) then
+                  moveDir = moveDir + cam.CFrame.RightVector
+               end
+               
+               bv.velocity = moveDir * flySpeed
+            end
+            if bv then bv:Destroy() end
+            if bg then bg:Destroy() end
+         end)
+      else
+         if hrp:FindFirstChild("OpexFly") then hrp.OpexFly:Destroy() end
+         if hrp:FindFirstChild("OpexGyro") then hrp.OpexGyro:Destroy() end
+      end
+   end,
+})
+
+-- Fly Speed Slider
+MovementTab:CreateSlider({
+   Name = "Fly Speed",
+   Range = {10, 200},
+   Increment = 5,
+   Suffix = " speed",
+   CurrentValue = 50,
+   Flag = "FlySpeedSlider",
+   Callback = function(Value)
+      flySpeed = Value
+   end,
+})
+
+-- Notifications to tell the user it ran successfully
+Rayfield:Notify({
+   Title = "Opex Hub Loaded",
+   Content = "Enjoy and thanks for using my script",
+   Duration = 5,
+   Image = 4483362458,
+})
