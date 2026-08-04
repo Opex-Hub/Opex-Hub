@@ -1,5 +1,26 @@
-if game.PlaceId == 7395930870 then
-    loadstring(game:HttpGet("https://raw.githubusercontent.com/Opex-Hub/Opex-Hub/refs/heads/main/Opex%20Hub%20%7C%20Sell%20Lemons"))()
-elseif game.PlaceId == 7436755782 then
-    loadstring(game:HttpGet("https://raw.githubusercontent.com/Opex-Hub/Opex-Hub/refs/heads/main/Opex%20Hub%20%7C%20Grow%20A%20Garden"))()
+-- Opex Hub Universal Loader
+
+local placeId = game.PlaceId
+local hubUrl = nil
+
+if placeId == 9998576154 then
+    hubUrl = "https://raw.githubusercontent.com/Opex-Hub/Opex-Hub/refs/heads/main/Opex%20Hub%20%7C%20%2B1%20wings%20for%20brainrots"
+elseif placeId == 7474367816 then
+    hubUrl = "https://raw.githubusercontent.com/Opex-Hub/Opex-Hub/refs/heads/main/Opex%20Hub%20%7C%20Climb%20And%20Jump%20Tower"
+end
+
+if hubUrl then
+    -- Optional: notify the user
+    game:GetService("StarterGui"):SetCore("SendNotification", {
+        Title = "Opex Hub",
+        Text = "Loading supported script...",
+        Duration = 3
+    })
+    loadstring(game:HttpGet(hubUrl))()
+else
+    game:GetService("StarterGui"):SetCore("SendNotification", {
+        Title = "Opex Hub",
+        Text = "This game is not supported.",
+        Duration = 5
+    })
 end
