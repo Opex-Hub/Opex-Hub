@@ -6,11 +6,14 @@ local hubUrl = nil
 -- Correct place IDs extracted from your game URLs:
 -- 1-Wings for Brainrots: placeId=84332574190497 (universeId=9998576154)
 -- Climb and Jump Tower: placeId=123921593837160 (universeId=7474367816)
+-- Murder Mystery 2: placeId=142823291 (universeId=66654135)
 
 if placeId == 84332574190497 then
     hubUrl = "https://raw.githubusercontent.com/Opex-Hub/Opex-Hub/refs/heads/main/Opex%20Hub%20%7C%20%2B1%20wings%20for%20brainrots"
 elseif placeId == 123921593837160 then
     hubUrl = "https://raw.githubusercontent.com/Opex-Hub/Opex-Hub/refs/heads/main/Opex%20Hub%20%7C%20Climb%20And%20Jump%20Tower"
+elseif placeId == 142823291 then
+    hubUrl = "https://raw.githubusercontent.com/Opex-Hub/Opex-Hub/refs/heads/main/Opex%20Hub%7CMurder%20Mistery%202"
 end
 
 if hubUrl then
@@ -46,7 +49,7 @@ else
         textLabel.Parent = frame
     end
 
-    wait(5)
+    task.wait(5)
 
     -- Remove the black screen after 5 seconds
     if player and player.PlayerGui then
