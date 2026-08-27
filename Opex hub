@@ -1,41 +1,140 @@
 -- Opex Hub Universal Loader
 
+local Players = game:GetService("Players")
+local CoreGui = game:GetService("CoreGui")
+
+local player = Players.LocalPlayer
 local placeId = game.PlaceId
 local hubUrl = nil
 
--- Correct place IDs extracted from your game URLs:
--- 1-Wings for Brainrots: placeId=84332574190497 (universeId=9998576154)
--- Climb and Jump Tower: placeId=123921593837160 (universeId=7474367816)
--- Murder Mystery 2: placeId=142823291 (universeId=66654135)
-
+-- Place IDs & Script URLs
 if placeId == 84332574190497 then
     hubUrl = "https://raw.githubusercontent.com/Opex-Hub/Opex-Hub/refs/heads/main/Opex%20Hub%20%7C%20%2B1%20wings%20for%20brainrots"
 elseif placeId == 123921593837160 then
     hubUrl = "https://raw.githubusercontent.com/Opex-Hub/Opex-Hub/refs/heads/main/Opex%20Hub%20%7C%20Climb%20And%20Jump%20Tower"
 elseif placeId == 142823291 then
     hubUrl = "https://raw.githubusercontent.com/Opex-Hub/Opex-Hub/refs/heads/main/Opex%20Hub%7CMurder%20Mistery%202"
+elseif placeId == 126884695634066 then
+    hubUrl = "https://raw.githubusercontent.com/Opex-Hub/Opex-Hub/refs/heads/main/GROW%20A%20GARDEN"
+end
+
+-- Safely find parent UI container
+local function getGuiParent()
+    local success, res = pcall(function() return CoreGui end)
+    if success and res then return res end
+    return player:WaitForChild("PlayerGui")
 end
 
 if hubUrl then
-    -- Notify the user that loading has started
-    game:GetService("StarterGui"):SetCore("SendNotification", {
-        Title = "Opex Hub",
-        Text = "Loading supported script...",
-        Duration = 3
-    })
+    local guiParent = getGuiParent()
+
+    -- Create Hacker Loading UI Screen
+    local loaderGui = Instance.new("ScreenGui")
+    loaderGui.Name = "OpexHubHackerLoader"
+    loaderGui.ResetOnSpawn = false
+    loaderGui.DisplayOrder = 999
+    loaderGui.Parent = guiParent
+
+    local bgFrame = Instance.new("Frame")
+    bgFrame.Size = UDim2.new(1, 0, 1, 0)
+    bgFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+    bgFrame.BorderSizePixel = 0
+    bgFrame.Parent = loaderGui
+
+    -- Title Label
+    local titleLabel = Instance.new("TextLabel")
+    titleLabel.Size = UDim2.new(1, 0, 0, 50)
+    titleLabel.Position = UDim2.new(0, 0, 0.22, 0)
+    titleLabel.BackgroundTransparency = 1
+    titleLabel.Text = "OPEX HUB // INITIALIZING SYSTEM"
+    titleLabel.TextColor3 = Color3.fromRGB(0, 255, 100)
+    titleLabel.TextSize = 26
+    titleLabel.Font = Enum.Font.Code
+    titleLabel.Parent = bgFrame
+
+    -- Matrix Hacker Text Label
+    local hackerLabel = Instance.new("TextLabel")
+    hackerLabel.Size = UDim2.new(0.85, 0, 0.2, 0)
+    hackerLabel.Position = UDim2.new(0.075, 0, 0.35, 0)
+    hackerLabel.BackgroundTransparency = 1
+    hackerLabel.TextColor3 = Color3.fromRGB(0, 200, 70)
+    hackerLabel.TextSize = 15
+    hackerLabel.Font = Enum.Font.Code
+    hackerLabel.TextWrapped = true
+    hackerLabel.TextYAlignment = Enum.TextYAlignment.Top
+    hackerLabel.Parent = bgFrame
+
+    -- Loading Bar Outline
+    local barOutline = Instance.new("Frame")
+    barOutline.Size = UDim2.new(0.6, 0, 0, 22)
+    barOutline.Position = UDim2.new(0.2, 0, 0.6, 0)
+    barOutline.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
+    barOutline.BorderSizePixel = 1
+    barOutline.BorderColor3 = Color3.fromRGB(0, 255, 100)
+    barOutline.Parent = bgFrame
+
+    -- Loading Bar Fill
+    local barFill = Instance.new("Frame")
+    barFill.Size = UDim2.new(0, 0, 1, 0)
+    barFill.BackgroundColor3 = Color3.fromRGB(0, 255, 100)
+    barFill.BorderSizePixel = 0
+    barFill.Parent = barOutline
+
+    -- Percentage Text
+    local percentLabel = Instance.new("TextLabel")
+    percentLabel.Size = UDim2.new(1, 0, 0, 30)
+    percentLabel.Position = UDim2.new(0, 0, 0.66, 0)
+    percentLabel.BackgroundTransparency = 1
+    percentLabel.Text = "0%"
+    percentLabel.TextColor3 = Color3.fromRGB(0, 255, 100)
+    percentLabel.TextSize = 22
+    percentLabel.Font = Enum.Font.Code
+    percentLabel.Parent = bgFrame
+
+    -- Rapid Matrix Number Generator Loop
+    local isAnimating = true
+    task.spawn(function()
+        local hexChars = {"0","1","2","3","4","5","6","7","8","9","A","B","C","D","E","F","X","Y","Z"}
+        while isAnimating do
+            local line = ""
+            for i = 1, 140 do
+                line = line .. hexChars[math.random(1, #hexChars)] .. (i % 2 == 0 and " " or "")
+            end
+            hackerLabel.Text = line
+            task.wait(0.03)
+        end
+    end)
+
+    -- Rapid Progress Bar Animation (0 to 100%)
+    local steps = 50
+    local totalDuration = 1.6
+    for i = 1, steps do
+        local progress = i / steps
+        barFill.Size = UDim2.new(progress, 0, 1, 0)
+        percentLabel.Text = "LOADING... " .. math.floor(progress * 100) .. "%"
+        task.wait(totalDuration / steps)
+    end
+
+    isAnimating = false
+    task.wait(0.15)
+    loaderGui:Destroy()
+
+    -- Load Target Script
     loadstring(game:HttpGet(hubUrl))()
+
 else
-    -- Black screen with white "NOT SUPPORTED" text for 5 seconds
-    local player = game.Players.LocalPlayer
-    if player and player.PlayerGui then
-        local screenGui = Instance.new("ScreenGui")
-        screenGui.Parent = player.PlayerGui
-        screenGui.ResetOnSpawn = false
+    -- Black screen with white "GAME NOT SUPPORTED" text for 5 seconds
+    local playerGui = player and player:FindFirstChild("PlayerGui")
+    if playerGui then
+        local unsupportedGui = Instance.new("ScreenGui")
+        unsupportedGui.Name = "OpexHubUnsupported"
+        unsupportedGui.Parent = playerGui
+        unsupportedGui.ResetOnSpawn = false
 
         local frame = Instance.new("Frame")
         frame.Size = UDim2.new(1, 0, 1, 0)
         frame.BackgroundColor3 = Color3.new(0, 0, 0)
-        frame.Parent = screenGui
+        frame.Parent = unsupportedGui
 
         local textLabel = Instance.new("TextLabel")
         textLabel.Size = UDim2.new(1, 0, 1, 0)
@@ -47,16 +146,8 @@ else
         textLabel.TextStrokeTransparency = 0
         textLabel.TextStrokeColor3 = Color3.new(0, 0, 0)
         textLabel.Parent = frame
-    end
 
-    task.wait(5)
-
-    -- Remove the black screen after 5 seconds
-    if player and player.PlayerGui then
-        for _, gui in pairs(player.PlayerGui:GetChildren()) do
-            if gui:IsA("ScreenGui") and gui.Name == "" and #gui:GetChildren() == 1 and gui:FindFirstChildWhichIsA("Frame") then
-                gui:Destroy()
-            end
-        end
+        task.wait(5)
+        unsupportedGui:Destroy()
     end
 end
