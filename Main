@@ -23,11 +23,11 @@ local Config = {
     Secret          = "Code", 
     
     -- [3] Scripts & Links
-    MainScriptURL   = "https://github.com/Opex-Hub/Opex-Hub/blob/main/Opex%20hub", 
+    MainScriptURL   = "https://raw.githubusercontent.com/Opex-Hub/Opex-Hub/refs/heads/main/Opex%20hub", 
     
     -- [4] Social Media Settings
     ShowDiscord     = true,
-    DiscordURL      = "https://discord.gg/JUFfKRwDA",
+    DiscordURL      = "https://discord.gg/KfAWtJsVf",
     
     ShowInstagram   = false,
     InstagramURL    = "https://www.instagram.com/oyb0i/",
