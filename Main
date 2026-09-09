@@ -23,7 +23,7 @@ local Config = {
     Secret          = "Code", 
     
     -- [3] Scripts & Links
-    MainScriptURL   = "https://github.com/Opex-Hub/Opex-Hub/blob/main/Main", 
+    MainScriptURL   = "https://github.com/Opex-Hub/Opex-Hub/blob/main/Opex%20hub", 
     
     -- [4] Social Media Settings
     ShowDiscord     = true,
