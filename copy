@@ -1,0 +1,831 @@
+-- OPEX (Murder Mystery 2)
+-- Created by Tu_papi
+-- UI Library: Footagesus WindUI
+
+print("Thanks For Using Opex")
+
+local WindUI = loadstring(game:HttpGet("https://raw.githubusercontent.com/Footagesus/WindUI/main/dist/main.lua"))()
+local RunService = game:GetService("RunService")
+local Players = game:GetService("Players")
+local Workspace = game:GetService("Workspace")
+local CoreGui = game:GetService("CoreGui")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local VirtualInputManager = game:GetService("VirtualInputManager")
+local TweenService = game:GetService("TweenService")
+local TeleportService = game:GetService("TeleportService")
+local CollectionService = game:GetService("CollectionService")
+local LocalPlayer = Players.LocalPlayer
+
+local ExecutorName = identifyexecutor and identifyexecutor() or "Unknown Executor"
+local JobId = game.JobId
+local PlaceId = game.PlaceId
+
+local Window = WindUI:CreateWindow({
+    Title = "<font color='#0055FF'>OPEX</font> <font color='#000000'>| MM2</font>",
+    Icon = "swords",
+    Author = "by Tu_papi",
+    Folder = "OPEX_MM2",
+    Size = UDim2.fromOffset(580, 460),
+    Transparent = true,
+    Theme = "Dark",
+    SideBarWidth = 160,
+    HasOutline = false
+})
+
+WindUI:Notify({
+    Title = "OPEX Executed",
+    Content = "Thanks For Using Opex",
+    Duration = 5
+})
+
+-- // GLOBAL STATE //
+getgenv().OPEX = {
+    KillAll = false,
+    AuraKill = false,
+    AutoGrabGun = false,
+    Aimbot = false,
+    Hitbox = false,
+    GunESP = false,
+    InnocentESP = false,
+    SheriffESP = false,
+    MurdererESP = false,
+    AutoFarmCoins = false,
+    Noclip = false,
+    FlingAll = false,
+    JumpscareActive = false,
+    CenterCrosshair = false,
+    IsShooting = false,
+    WalkSpeed = 16,
+    JumpPower = 50,
+    InputServerID = "",
+}
+
+-- // UTILITY FUNCTIONS //
+local function getGunDrop()
+    if Workspace:FindFirstChild("GunDrop") then
+        return Workspace.GunDrop
+    end
+    for _, v in pairs(Workspace:GetDescendants()) do
+        if v.Name == "GunDrop" and v:IsA("BasePart") then
+            return v
+        end
+    end
+    return nil
+end
+
+local function getRole(player)
+    if not player or not player.Character then return "Innocent" end
+    if player.Character:FindFirstChild("Knife") then return "Murderer" end
+    if player.Character:FindFirstChild("Gun") then return "Sheriff" end
+    local bp = player:FindFirstChild("Backpack")
+    if bp then
+        if bp:FindFirstChild("Knife") then return "Murderer" end
+        if bp:FindFirstChild("Gun") then return "Sheriff" end
+    end
+    return "Innocent"
+end
+
+local function getPlayerByRole(roleName)
+    for _, p in pairs(Players:GetPlayers()) do
+        if p ~= LocalPlayer and getRole(p) == roleName then
+            return p
+        end
+    end
+    return nil
+end
+
+local function create4LineCrosshair(parentFrame, color)
+    local t = Instance.new("Frame") t.BackgroundColor3 = color t.BorderSizePixel = 0 t.Parent = parentFrame
+    t.Size = UDim2.new(0, 3, 0, 12) t.Position = UDim2.new(0.5, -1, 0, 0)
+    local b = Instance.new("Frame") b.BackgroundColor3 = color b.BorderSizePixel = 0 b.Parent = parentFrame
+    b.Size = UDim2.new(0, 3, 0, 12) b.Position = UDim2.new(0.5, -1, 1, -12)
+    local l = Instance.new("Frame") l.BackgroundColor3 = color l.BorderSizePixel = 0 l.Parent = parentFrame
+    l.Size = UDim2.new(0, 12, 0, 3) l.Position = UDim2.new(0, 0, 0.5, -1)
+    local r = Instance.new("Frame") r.BackgroundColor3 = color r.BorderSizePixel = 0 r.Parent = parentFrame
+    r.Size = UDim2.new(0, 12, 0, 3) r.Position = UDim2.new(1, -12, 0.5, -1)
+end
+
+-- // TABS //
+local MainTab = Window:Tab({ Title = "Main", Icon = "home" })
+local MurderTab = Window:Tab({ Title = "Murder", Icon = "flame" })
+local SheriffTab = Window:Tab({ Title = "Sheriff", Icon = "shield" })
+local CombatTab = Window:Tab({ Title = "Combat", Icon = "swords" })
+local TeleportTab = Window:Tab({ Title = "Teleport", Icon = "map-pin" })
+local VisualsTab = Window:Tab({ Title = "Visuals", Icon = "eye" })
+local AutoFarmTab = Window:Tab({ Title = "Auto Farm", Icon = "star" })
+local LocalTab = Window:Tab({ Title = "Local", Icon = "user" })
+local TrollTab = Window:Tab({ Title = "Troll", Icon = "smile" })
+
+
+-- // MAIN TAB //
+MainTab:Section({ Title = "Script Information" })
+MainTab:Button({ Title = "Welcome User: " .. LocalPlayer.Name, Callback = function() end })
+MainTab:Button({ Title = "Creator: Tu_papi", Callback = function() end })
+
+MainTab:Section({ Title = "Server & Client Info" })
+MainTab:Button({ Title = "Executor: " .. ExecutorName, Callback = function() end })
+MainTab:Button({ Title = "Server ID: " .. string.sub(JobId, 1, 15) .. "...", Callback = function() end })
+
+-- All previous server buttons
+MainTab:Button({
+    Title = "Copy Server ID",
+    Desc = "Copies the current server ID to clipboard",
+    Callback = function()
+        setclipboard(JobId)
+        WindUI:Notify({Title = "Copied", Content = "Server ID copied!", Duration = 3})
+    end
+})
+
+MainTab:Button({
+    Title = "Copy Server Join Script",
+    Desc = "Copies a script your friends can execute to join your server",
+    Callback = function()
+        local joinScript = string.format("game:GetService('TeleportService'):TeleportToPlaceInstance(%d, '%s', game.Players.LocalPlayer)", PlaceId, JobId)
+        setclipboard(joinScript)
+        WindUI:Notify({Title = "Copied", Content = "Join script copied!", Duration = 3})
+    end
+})
+
+MainTab:Button({
+    Title = "Rejoin Server",
+    Desc = "Teleports you back to the same server",
+    Callback = function()
+        TeleportService:TeleportToPlaceInstance(PlaceId, JobId)
+    end
+})
+
+MainTab:Button({
+    Title = "Server Hop",
+    Desc = "Teleports to a new server of the same game",
+    Callback = function()
+        TeleportService:Teleport(PlaceId)
+    end
+})
+
+MainTab:Button({
+    Title = "Join Server from Clipboard",
+    Desc = "Reads a server ID from clipboard and joins it",
+    Callback = function()
+        local serverId = getclipboard and getclipboard() or ""
+        if serverId ~= "" then
+            TeleportService:TeleportToPlaceInstance(PlaceId, serverId)
+        else
+            WindUI:Notify({Title = "Error", Content = "Clipboard is empty or not supported.", Duration = 3})
+        end
+    end
+})
+
+-- New text box for manual server ID entry
+MainTab:Input({
+    Title = "Enter Server ID",
+    Placeholder = "Paste Server ID here",
+    Callback = function(text)
+        getgenv().OPEX.InputServerID = text
+    end
+})
+
+-- New button to join the typed server ID
+MainTab:Button({
+    Title = "Join Server ID",
+    Desc = "Joins the server with the ID you entered",
+    Callback = function()
+        local serverId = getgenv().OPEX.InputServerID
+        if serverId and serverId ~= "" then
+            TeleportService:TeleportToPlaceInstance(PlaceId, serverId)
+        else
+            WindUI:Notify({Title = "Error", Content = "Please enter a server ID first!", Duration = 3})
+        end
+    end
+})
+
+
+-- // MURDER TAB //
+MurderTab:Section({ Title = "Murderer Abilities" })
+
+MurderTab:Toggle({
+    Title = "Kill All",
+    Desc = "Teleports to every player and attacks continuously",
+    Default = false,
+    Callback = function(state)
+        getgenv().OPEX.KillAll = state
+        task.spawn(function()
+            while getgenv().OPEX.KillAll do
+                task.wait(0.1)
+                if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+                    local knife = LocalPlayer.Character:FindFirstChild("Knife") or (LocalPlayer.Backpack and LocalPlayer.Backpack:FindFirstChild("Knife"))
+                    if knife then knife.Parent = LocalPlayer.Character end
+                    
+                    for _, p in pairs(Players:GetPlayers()) do
+                        if p ~= LocalPlayer and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
+                            if not getgenv().OPEX.KillAll then break end
+                            LocalPlayer.Character.HumanoidRootPart.CFrame = p.Character.HumanoidRootPart.CFrame * CFrame.new(0, 0, 1.5)
+                            if LocalPlayer.Character:FindFirstChild("Knife") then
+                                LocalPlayer.Character.Knife:Activate()
+                            end
+                            task.wait(0.1)
+                        end
+                    end
+                end
+            end
+        end)
+    end
+})
+
+MurderTab:Toggle({
+    Title = "Aura Kill",
+    Desc = "Automatically stabs players near you",
+    Default = false,
+    Callback = function(state)
+        getgenv().OPEX.AuraKill = state
+        task.spawn(function()
+            while getgenv().OPEX.AuraKill do
+                task.wait(0.1)
+                if LocalPlayer.Character then
+                    local knife = LocalPlayer.Character:FindFirstChild("Knife")
+                    if knife then
+                        for _, p in pairs(Players:GetPlayers()) do
+                            if p ~= LocalPlayer and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
+                                local dist = (LocalPlayer.Character.HumanoidRootPart.Position - p.Character.HumanoidRootPart.Position).Magnitude
+                                if dist <= 15 then
+                                    knife:Activate()
+                                end
+                            end
+                        end
+                    end
+                end
+            end
+        end)
+    end
+})
+
+MurderTab:Button({
+    Title = "Kill Sheriff",
+    Desc = "Teleports directly to the Sheriff",
+    Callback = function()
+        local sheriff = getPlayerByRole("Sheriff")
+        if sheriff and sheriff.Character and sheriff.Character:FindFirstChild("HumanoidRootPart") and LocalPlayer.Character then
+            LocalPlayer.Character.HumanoidRootPart.CFrame = sheriff.Character.HumanoidRootPart.CFrame * CFrame.new(0, 0, 2)
+        end
+    end
+})
+
+
+-- // SHERIFF TAB //
+SheriffTab:Section({ Title = "Sheriff Abilities" })
+
+local ShootGui = nil
+local RotateConnection = nil
+
+SheriffTab:Toggle({
+    Title = "Shoot Murderer Button",
+    Desc = "Locks aim, temporarily freezes movement, and shoots the Murderer",
+    Default = false,
+    Callback = function(state)
+        if state then
+            if not CoreGui:FindFirstChild("OPEX_ShootGui") then
+                ShootGui = Instance.new("ScreenGui")
+                ShootGui.Name = "OPEX_ShootGui"
+                ShootGui.Parent = CoreGui
+
+                local Btn = Instance.new("ImageButton")
+                Btn.Name = "ShootBtn"
+                Btn.Parent = ShootGui
+                Btn.Size = UDim2.new(0, 65, 0, 65)
+                Btn.Position = UDim2.new(0.82, 0, 0.45, 0)
+                Btn.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
+                Btn.Active = true
+                Btn.Draggable = true
+
+                local Corner = Instance.new("UICorner")
+                Corner.CornerRadius = UDim.new(0, 16)
+                Corner.Parent = Btn
+
+                local Stroke = Instance.new("UIStroke")
+                Stroke.Color = Color3.fromRGB(0, 140, 255)
+                Stroke.Thickness = 2.5
+                Stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+                Stroke.Parent = Btn
+
+                local AimIcon = Instance.new("Frame")
+                AimIcon.Name = "AimIcon"
+                AimIcon.Parent = Btn
+                AimIcon.Size = UDim2.new(0, 36, 0, 36)
+                AimIcon.Position = UDim2.new(0.5, -18, 0.5, -18)
+                AimIcon.BackgroundTransparency = 1
+                
+                create4LineCrosshair(AimIcon, Color3.fromRGB(0, 170, 255))
+
+                RotateConnection = RunService.RenderStepped:Connect(function()
+                    AimIcon.Rotation = (AimIcon.Rotation + 4) % 360
+                end)
+
+                Btn.MouseButton1Click:Connect(function()
+                    getgenv().OPEX.IsShooting = true
+                    task.delay(1, function()
+                        getgenv().OPEX.IsShooting = false
+                    end)
+
+                    local murderer = getPlayerByRole("Murderer")
+                    if murderer and murderer.Character and murderer.Character:FindFirstChild("Head") and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+                        local gun = LocalPlayer.Character:FindFirstChild("Gun") or (LocalPlayer.Backpack and LocalPlayer.Backpack:FindFirstChild("Gun"))
+                        if gun then
+                            gun.Parent = LocalPlayer.Character
+                            task.wait(0.1)
+                            
+                            local targetHead = murderer.Character.Head.Position
+                            -- Aim instantly
+                            LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(LocalPlayer.Character.HumanoidRootPart.Position, targetHead)
+                            if Workspace.CurrentCamera then
+                                Workspace.CurrentCamera.CFrame = CFrame.new(Workspace.CurrentCamera.CFrame.Position, targetHead)
+                            end
+                            task.wait(0.3) -- allow aim to stabilize
+
+                            -- Try to fire via remote events/functions
+                            local fired = false
+                            for _, v in pairs(gun:GetDescendants()) do
+                                if v:IsA("RemoteEvent") and (string.match(string.lower(v.Name), "shoot") or string.match(string.lower(v.Name), "fire") or string.match(string.lower(v.Name), "gun")) then
+                                    v:FireServer(targetHead)
+                                    fired = true
+                                    break
+                                elseif v:IsA("RemoteFunction") and (string.match(string.lower(v.Name), "shoot") or string.match(string.lower(v.Name), "fire") or string.match(string.lower(v.Name), "gun")) then
+                                    task.spawn(function() v:InvokeServer(targetHead) end)
+                                    fired = true
+                                    break
+                                end
+                            end
+
+                            -- If no remote, simulate click at murderer's head screen position
+                            if not fired then
+                                gun:Activate()
+                                task.wait(0.1)
+                                local cam = Workspace.CurrentCamera
+                                local screenPos, onScreen = cam:WorldToScreenPoint(targetHead)
+                                if onScreen then
+                                    VirtualInputManager:SendMouseButtonEvent(screenPos.X, screenPos.Y, 0, true, game, 0)
+                                    task.wait(0.1)
+                                    VirtualInputManager:SendMouseButtonEvent(screenPos.X, screenPos.Y, 0, false, game, 0)
+                                else
+                                    -- Fallback: click center
+                                    local viewSize = cam.ViewportSize
+                                    VirtualInputManager:SendMouseButtonEvent(viewSize.X/2, viewSize.Y/2, 0, true, game, 0)
+                                    task.wait(0.1)
+                                    VirtualInputManager:SendMouseButtonEvent(viewSize.X/2, viewSize.Y/2, 0, false, game, 0)
+                                end
+                            end
+
+                            -- Extra fallback: use mouse1click if available
+                            if not fired and mouse1click then
+                                mouse1click()
+                            end
+                        end
+                    end
+                end)
+            end
+        else
+            if ShootGui then ShootGui:Destroy() ShootGui = nil end
+            if RotateConnection then RotateConnection:Disconnect() RotateConnection = nil end
+            getgenv().OPEX.IsShooting = false
+        end
+    end
+})
+
+SheriffTab:Button({
+    Title = "🔫 Get Gun",
+    Desc = "Teleports to the gun drop and picks it up immediately",
+    Callback = function()
+        local drop = getGunDrop()
+        if drop and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+            local hrp = LocalPlayer.Character.HumanoidRootPart
+            hrp.CFrame = drop.CFrame
+            task.wait(0.1)
+            if firetouchinterest then
+                firetouchinterest(hrp, drop, 0)
+                task.wait(0.05)
+                firetouchinterest(hrp, drop, 1)
+            end
+            WindUI:Notify({Title = "Get Gun", Content = "Attempted to pick up gun!", Duration = 2})
+        else
+            WindUI:Notify({Title = "Get Gun", Content = "No gun drop found!", Duration = 2})
+        end
+    end
+})
+
+SheriffTab:Toggle({
+    Title = "Auto Pick Up Gun",
+    Desc = "Locates the Sheriff and teleports to grab the gun on death",
+    Default = false,
+    Callback = function(state)
+        getgenv().OPEX.AutoGrabGun = state
+        task.spawn(function()
+            while getgenv().OPEX.AutoGrabGun do
+                task.wait(0.05)
+                
+                local sheriff = getPlayerByRole("Sheriff")
+                if sheriff and sheriff.Character then
+                    local hum = sheriff.Character:FindFirstChild("Humanoid")
+                    local hrp = sheriff.Character:FindFirstChild("HumanoidRootPart")
+                    if hum and hrp and hum.Health <= 0 then
+                        if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+                            LocalPlayer.Character.HumanoidRootPart.CFrame = hrp.CFrame
+                        end
+                    end
+                end
+                
+                local drop = getGunDrop()
+                if drop and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+                    local hrp = LocalPlayer.Character.HumanoidRootPart
+                    hrp.CFrame = drop.CFrame
+                    if firetouchinterest then
+                        firetouchinterest(hrp, drop, 0)
+                        task.wait(0.01)
+                        firetouchinterest(hrp, drop, 1)
+                    end
+                end
+            end
+        end)
+    end
+})
+
+
+-- // COMBAT TAB //
+CombatTab:Section({ Title = "Combat Mechanics" })
+
+CombatTab:Toggle({
+    Title = "Head Aimbot",
+    Desc = "Locks camera directly onto target enemy's head",
+    Default = false,
+    Callback = function(state)
+        getgenv().OPEX.Aimbot = state
+        task.spawn(function()
+            while getgenv().OPEX.Aimbot do
+                task.wait()
+                local target = getPlayerByRole("Murderer") or getPlayerByRole("Sheriff")
+                if target and target.Character and target.Character:FindFirstChild("Head") and Workspace.CurrentCamera then
+                    Workspace.CurrentCamera.CFrame = CFrame.new(Workspace.CurrentCamera.CFrame.Position, target.Character.Head.Position)
+                end
+            end
+        end)
+    end
+})
+
+CombatTab:Toggle({
+    Title = "Hitbox Expander",
+    Desc = "Expands enemy hitboxes for easy hits",
+    Default = false,
+    Callback = function(state)
+        getgenv().OPEX.Hitbox = state
+        task.spawn(function()
+            while getgenv().OPEX.Hitbox do
+                task.wait(1)
+                for _, p in pairs(Players:GetPlayers()) do
+                    if p ~= LocalPlayer and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
+                        p.Character.HumanoidRootPart.Size = Vector3.new(12, 12, 12)
+                        p.Character.HumanoidRootPart.Transparency = 0.6
+                        p.Character.HumanoidRootPart.CanCollide = false
+                    end
+                end
+            end
+        end)
+    end
+})
+
+
+-- // TELEPORT TAB //
+TeleportTab:Section({ Title = "Location Teleports" })
+
+TeleportTab:Button({
+    Title = "Teleport to Spawn / Lobby",
+    Callback = function()
+        if Workspace:FindFirstChild("Lobby") and LocalPlayer.Character then
+            LocalPlayer.Character.HumanoidRootPart.CFrame = Workspace.Lobby.SpawnLocation.CFrame + Vector3.new(0, 5, 0)
+        end
+    end
+})
+
+TeleportTab:Button({
+    Title = "Teleport to Game Map",
+    Callback = function()
+        local normalMap = Workspace:FindFirstChild("Normal") or Workspace:FindFirstChild("Map")
+        if normalMap and LocalPlayer.Character then
+            local spawns = normalMap:FindFirstChild("Spawns")
+            if spawns then
+                local spawnPoints = spawns:GetChildren()
+                if #spawnPoints > 0 then
+                    LocalPlayer.Character.HumanoidRootPart.CFrame = spawnPoints[math.random(1, #spawnPoints)].CFrame + Vector3.new(0, 4, 0)
+                end
+            end
+        end
+    end
+})
+
+TeleportTab:Section({ Title = "Player Teleports" })
+
+TeleportTab:Button({
+    Title = "Teleport to Murderer",
+    Callback = function()
+        local target = getPlayerByRole("Murderer")
+        if target and target.Character and LocalPlayer.Character then
+            LocalPlayer.Character.HumanoidRootPart.CFrame = target.Character.HumanoidRootPart.CFrame * CFrame.new(0, 0, 3)
+        end
+    end
+})
+
+TeleportTab:Button({
+    Title = "Teleport to Sheriff",
+    Callback = function()
+        local target = getPlayerByRole("Sheriff")
+        if target and target.Character and LocalPlayer.Character then
+            LocalPlayer.Character.HumanoidRootPart.CFrame = target.Character.HumanoidRootPart.CFrame * CFrame.new(0, 0, 3)
+        end
+    end
+})
+
+
+-- // VISUALS TAB //
+VisualsTab:Section({ Title = "UI Additions" })
+
+local CenterCrosshairUI = nil
+local CenterRotateConn = nil
+
+VisualsTab:Toggle({
+    Title = "Center Rotating Crosshair",
+    Desc = "Adds a spinning 4-line aim icon to the middle of your screen",
+    Default = false,
+    Callback = function(state)
+        getgenv().OPEX.CenterCrosshair = state
+        if state then
+            if not CoreGui:FindFirstChild("OPEX_CenterAim") then
+                CenterCrosshairUI = Instance.new("ScreenGui")
+                CenterCrosshairUI.Name = "OPEX_CenterAim"
+                CenterCrosshairUI.Parent = CoreGui
+                CenterCrosshairUI.IgnoreGuiInset = true
+                
+                local AimContainer = Instance.new("Frame")
+                AimContainer.Name = "Container"
+                AimContainer.Parent = CenterCrosshairUI
+                AimContainer.Size = UDim2.new(0, 40, 0, 40)
+                AimContainer.Position = UDim2.new(0.5, -20, 0.5, -20)
+                AimContainer.BackgroundTransparency = 1
+                
+                create4LineCrosshair(AimContainer, Color3.fromRGB(0, 255, 100))
+                
+                CenterRotateConn = RunService.RenderStepped:Connect(function()
+                    AimContainer.Rotation = (AimContainer.Rotation + 3) % 360
+                end)
+            end
+        else
+            if CenterCrosshairUI then CenterCrosshairUI:Destroy() CenterCrosshairUI = nil end
+            if CenterRotateConn then CenterRotateConn:Disconnect() CenterRotateConn = nil end
+        end
+    end
+})
+
+VisualsTab:Section({ Title = "ESP Functions" })
+VisualsTab:Toggle({ Title = "Gun ESP", Default = false, Callback = function(state) getgenv().OPEX.GunESP = state end })
+VisualsTab:Toggle({ Title = "Innocent ESP", Default = false, Callback = function(state) getgenv().OPEX.InnocentESP = state end })
+VisualsTab:Toggle({ Title = "Sheriff ESP", Default = false, Callback = function(state) getgenv().OPEX.SheriffESP = state end })
+VisualsTab:Toggle({ Title = "Murderer ESP", Default = false, Callback = function(state) getgenv().OPEX.MurdererESP = state end })
+
+task.spawn(function()
+    while true do
+        task.wait(0.4)
+        for _, p in pairs(Players:GetPlayers()) do
+            if p ~= LocalPlayer and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
+                local role = getRole(p)
+                local currentHighlight = p.Character:FindFirstChild("OPEX_ESP")
+                
+                local shouldHighlight = false
+                local color = Color3.fromRGB(255, 255, 255)
+                
+                if role == "Murderer" and getgenv().OPEX.MurdererESP then
+                    shouldHighlight = true
+                    color = Color3.fromRGB(255, 0, 0)
+                elseif role == "Sheriff" and getgenv().OPEX.SheriffESP then
+                    shouldHighlight = true
+                    color = Color3.fromRGB(0, 150, 255)
+                elseif role == "Innocent" and getgenv().OPEX.InnocentESP then
+                    shouldHighlight = true
+                    color = Color3.fromRGB(0, 255, 100)
+                end
+                
+                if shouldHighlight then
+                    if not currentHighlight then
+                        currentHighlight = Instance.new("Highlight")
+                        currentHighlight.Name = "OPEX_ESP"
+                        currentHighlight.Parent = p.Character
+                    end
+                    currentHighlight.FillColor = color
+                    currentHighlight.OutlineColor = Color3.fromRGB(255, 255, 255)
+                    currentHighlight.FillTransparency = 0.4
+                else
+                    if currentHighlight then currentHighlight:Destroy() end
+                end
+            end
+        end
+        
+        local drop = getGunDrop()
+        if drop then
+            local gunHl = drop:FindFirstChild("OPEX_GunESP")
+            if getgenv().OPEX.GunESP then
+                if not gunHl then
+                    gunHl = Instance.new("Highlight")
+                    gunHl.Name = "OPEX_GunESP"
+                    gunHl.FillColor = Color3.fromRGB(255, 255, 0)
+                    gunHl.Parent = drop
+                end
+            else
+                if gunHl then gunHl:Destroy() end
+            end
+        end
+    end
+end)
+
+
+-- // AUTO FARM TAB //
+AutoFarmTab:Section({ Title = "Coin Collectors" })
+
+AutoFarmTab:Toggle({
+    Title = "Auto Farm Coins",
+    Desc = "Smoothly moves to coins and collects them automatically",
+    Default = false,
+    Callback = function(state)
+        getgenv().OPEX.AutoFarmCoins = state
+        task.spawn(function()
+            while getgenv().OPEX.AutoFarmCoins do
+                task.wait(0.2)
+                if not LocalPlayer.Character or not LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+                    -- skip
+                else
+                    local root = LocalPlayer.Character.HumanoidRootPart
+                    local coins = {}
+
+                    -- Find all coin-like BaseParts on the ground (Y < 50)
+                    for _, v in ipairs(Workspace:GetDescendants()) do
+                        if v:IsA("BasePart") then
+                            local name = v.Name:lower()
+                            local parentName = v.Parent and v.Parent.Name:lower() or ""
+                            if (name:find("coin") or parentName:find("coin")) and v.Position.Y < 50 then
+                                table.insert(coins, v)
+                            end
+                        end
+                    end
+
+                    if #coins == 0 then
+                        task.wait(1)
+                    else
+                        -- Sort by distance
+                        table.sort(coins, function(a, b)
+                            local distA = (root.Position - a.Position).Magnitude
+                            local distB = (root.Position - b.Position).Magnitude
+                            return distA < distB
+                        end)
+
+                        -- Tween to each coin (fast, safe)
+                        for _, coin in ipairs(coins) do
+                            if not getgenv().OPEX.AutoFarmCoins then break end
+                            if coin and coin.Parent then
+                                local distance = (root.Position - coin.Position).Magnitude
+                                local speed = 60 -- studs per second, not too fast to kick
+                                local duration = math.max(0.1, distance / speed)
+                                local tweenInfo = TweenInfo.new(duration, Enum.EasingStyle.Linear, Enum.EasingDirection.Out)
+                                local tween = TweenService:Create(root, tweenInfo, {CFrame = coin.CFrame})
+                                tween:Play()
+                                tween.Completed:Wait()
+                                
+                                task.wait(0.05)
+                                if firetouchinterest then
+                                    firetouchinterest(root, coin, 0)
+                                    task.wait(0.05)
+                                    firetouchinterest(root, coin, 1)
+                                end
+                                task.wait(0.1)
+                            end
+                        end
+                    end
+                end
+            end
+        end)
+    end
+})
+
+
+-- // LOCAL TAB //
+LocalTab:Section({ Title = "Character Modifiers" })
+
+LocalTab:Slider({
+    Title = "Speed",
+    Min = 16,
+    Max = 250,
+    Default = 16,
+    Callback = function(val) getgenv().OPEX.WalkSpeed = val end
+})
+
+LocalTab:Slider({
+    Title = "JumpPower",
+    Min = 50,
+    Max = 350,
+    Default = 50,
+    Callback = function(val) getgenv().OPEX.JumpPower = val end
+})
+
+LocalTab:Toggle({
+    Title = "No Clip",
+    Default = false,
+    Callback = function(state) getgenv().OPEX.Noclip = state end
+})
+
+-- Force speed/jump loop
+task.spawn(function()
+    while true do
+        task.wait(0.1)
+        if LocalPlayer.Character then
+            local hum = LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+            if hum then
+                if not getgenv().OPEX.IsShooting then
+                    hum.WalkSpeed = getgenv().OPEX.WalkSpeed
+                    hum.UseJumpPower = true
+                    hum.JumpPower = getgenv().OPEX.JumpPower
+                end
+            end
+        end
+    end
+end)
+
+RunService.RenderStepped:Connect(function()
+    if LocalPlayer.Character then
+        local hum = LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+        if hum then
+            if getgenv().OPEX.IsShooting then
+                hum.WalkSpeed = 0
+                hum.JumpPower = 0
+            end
+        end
+        
+        if getgenv().OPEX.Noclip then
+            for _, part in pairs(LocalPlayer.Character:GetDescendants()) do
+                if part:IsA("BasePart") then
+                    part.CanCollide = false
+                end
+            end
+        end
+    end
+end)
+
+
+-- // TROLL TAB //
+TrollTab:Section({ Title = "Troll Features" })
+
+TrollTab:Toggle({
+    Title = "Fling All",
+    Desc = "Fling all players away using body velocity",
+    Default = false,
+    Callback = function(state)
+        getgenv().OPEX.FlingAll = state
+        task.spawn(function()
+            while getgenv().OPEX.FlingAll do
+                task.wait(0.5)
+                for _, p in pairs(Players:GetPlayers()) do
+                    if p ~= LocalPlayer and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
+                        if not getgenv().OPEX.FlingAll then break end
+                        local targetRoot = p.Character.HumanoidRootPart
+                        if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+                            LocalPlayer.Character.HumanoidRootPart.CFrame = targetRoot.CFrame * CFrame.new(0, 3, 0)
+                        end
+                        local bv = Instance.new("BodyVelocity")
+                        bv.Velocity = Vector3.new(math.random(-200,200), 500, math.random(-200,200))
+                        bv.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
+                        bv.P = 1000
+                        bv.Parent = targetRoot
+                        task.delay(0.2, function()
+                            bv:Destroy()
+                        end)
+                        task.wait(0.1)
+                    end
+                end
+            end
+        end)
+    end
+})
+
+TrollTab:Toggle({
+    Title = "Jumpscare Loop",
+    Desc = "Continuously teleports directly in front of enemy faces",
+    Default = false,
+    Callback = function(state)
+        getgenv().OPEX.JumpscareActive = state
+        task.spawn(function()
+            while getgenv().OPEX.JumpscareActive do
+                task.wait(0.05)
+                for _, p in pairs(Players:GetPlayers()) do
+                    if p ~= LocalPlayer and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
+                        if not getgenv().OPEX.JumpscareActive then break end
+                        if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+                            LocalPlayer.Character.HumanoidRootPart.CFrame = p.Character.HumanoidRootPart.CFrame * CFrame.new(0, 0, -1.2) * CFrame.Angles(0, math.pi, 0)
+                        end
+                        task.wait(0.1)
+                    end
+                end
+            end
+        end)
+    end
+})
