@@ -16,6 +16,8 @@ elseif placeId == 142823291 then
     hubUrl = "https://raw.githubusercontent.com/Opex-Hub/Opex-Hub/refs/heads/main/MM2"
 elseif placeId == 126884695634066 then
     hubUrl = "https://raw.githubusercontent.com/Opex-Hub/Opex-Hub/refs/heads/main/GROW%20A%20GARDEN"
+elseif placeId == 76838459031868 then
+    hubUrl = "https://raw.githubusercontent.com/Opex-Hub/Opex-Hub/refs/heads/main/copy"
 end
 
 -- Safely find parent UI container
