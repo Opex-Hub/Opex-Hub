@@ -20,6 +20,15 @@ elseif placeId == 76838459031868 then
     hubUrl = "https://raw.githubusercontent.com/Opex-Hub/Opex-Hub/refs/heads/main/copy"
 elseif placeId == 125927821145949 then
     hubUrl = "https://raw.githubusercontent.com/Opex-Hub/Opex-Hub/refs/heads/main/mine.lua"
+elseif placeId == 2753915549 then
+    -- Blox Fruits - Sea 1
+    hubUrl = "https://raw.githubusercontent.com/Opex-Hub/Opex-Hub/refs/heads/main/FruitFinder"
+elseif placeId == 4442272183 then
+    -- Blox Fruits - Sea 2
+    hubUrl = "https://raw.githubusercontent.com/Opex-Hub/Opex-Hub/refs/heads/main/FruitFinder"
+elseif placeId == 7449423635 then
+    -- Blox Fruits - Sea 3
+    hubUrl = "https://raw.githubusercontent.com/Opex-Hub/Opex-Hub/refs/heads/main/FruitFinder"
 end
 
 -- Safely find parent UI container
