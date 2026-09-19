@@ -2,12 +2,56 @@
 
 local Players = game:GetService("Players")
 local CoreGui = game:GetService("CoreGui")
+local MarketplaceService = game:GetService("MarketplaceService")
+local TweenService = game:GetService("TweenService")
 
 local player = Players.LocalPlayer
 local placeId = game.PlaceId
 local hubUrl = nil
 
--- Place IDs & Script URLs
+-- ═══════════════════════════════════════════════════════
+-- BLOX FRUITS DETECTION (multi-method)
+-- ═══════════════════════════════════════════════════════
+local function isBloxFruits()
+    local knownPlaces = { 2753915549, 4442272183, 7449423635 }
+    for _, id in ipairs(knownPlaces) do
+        if placeId == id then return true end
+    end
+
+    local isBF = false
+    pcall(function()
+        if game.UniverseId == 994732206 then isBF = true end
+    end)
+    if isBF then return true end
+
+    local nameMatch = false
+    pcall(function()
+        local info = MarketplaceService:GetProductInfo(placeId)
+        if info and info.Name then
+            local n = string.lower(info.Name)
+            if string.find(n, "blox") and string.find(n, "fruit") then
+                nameMatch = true
+            end
+        end
+    end)
+    if nameMatch then return true end
+
+    local hasFolder = false
+    pcall(function()
+        if game:GetService("ReplicatedStorage"):FindFirstChild("Remotes") then
+            if game:GetService("ReplicatedStorage").Remotes:FindFirstChild("CommF_") then
+                hasFolder = true
+            end
+        end
+    end)
+    if hasFolder then return true end
+
+    return false
+end
+
+-- ═══════════════════════════════════════════════════════
+-- PLACE ID & URL MATCHING
+-- ═══════════════════════════════════════════════════════
 if placeId == 84332574190497 then
     hubUrl = "https://raw.githubusercontent.com/Opex-Hub/Opex-Hub/refs/heads/main/Opex%20Hub%20%7C%20%2B1%20wings%20for%20brainrots"
 elseif placeId == 123921593837160 then
@@ -20,14 +64,7 @@ elseif placeId == 76838459031868 then
     hubUrl = "https://raw.githubusercontent.com/Opex-Hub/Opex-Hub/refs/heads/main/copy"
 elseif placeId == 125927821145949 then
     hubUrl = "https://raw.githubusercontent.com/Opex-Hub/Opex-Hub/refs/heads/main/mine.lua"
-elseif placeId == 2753915549 then
-    -- Blox Fruits - Sea 1
-    hubUrl = "https://raw.githubusercontent.com/Opex-Hub/Opex-Hub/refs/heads/main/FruitFinder"
-elseif placeId == 4442272183 then
-    -- Blox Fruits - Sea 2
-    hubUrl = "https://raw.githubusercontent.com/Opex-Hub/Opex-Hub/refs/heads/main/FruitFinder"
-elseif placeId == 7449423635 then
-    -- Blox Fruits - Sea 3
+elseif isBloxFruits() then
     hubUrl = "https://raw.githubusercontent.com/Opex-Hub/Opex-Hub/refs/heads/main/FruitFinder"
 end
 
@@ -41,108 +78,183 @@ end
 if hubUrl then
     local guiParent = getGuiParent()
 
-    -- Create Hacker Loading UI Screen
+    -- ═══════════════════════════════════════════════════════
+    -- FULL SCREEN LOADING UI (Black + Blue)
+    -- ═══════════════════════════════════════════════════════
+    local BLACK = Color3.fromRGB(8, 8, 10)
+    local BLUE = Color3.fromRGB(0, 150, 255)
+
     local loaderGui = Instance.new("ScreenGui")
-    loaderGui.Name = "OpexHubHackerLoader"
+    loaderGui.Name = "OpexHubLoader"
     loaderGui.ResetOnSpawn = false
     loaderGui.DisplayOrder = 999
+    loaderGui.IgnoreGuiInset = true
     loaderGui.Parent = guiParent
 
+    -- FULL SCREEN black background
     local bgFrame = Instance.new("Frame")
     bgFrame.Size = UDim2.new(1, 0, 1, 0)
-    bgFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+    bgFrame.Position = UDim2.new(0, 0, 0, 0)
+    bgFrame.BackgroundColor3 = BLACK
+    bgFrame.BackgroundTransparency = 1
     bgFrame.BorderSizePixel = 0
     bgFrame.Parent = loaderGui
 
-    -- Title Label
+    -- Intro fade to full black
+    task.spawn(function()
+        TweenService:Create(bgFrame, TweenInfo.new(0.4, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+            BackgroundTransparency = 0
+        }):Play()
+    end)
+
+    -- Centered panel scaled for full screen
+    local panel = Instance.new("Frame")
+    panel.AnchorPoint = Vector2.new(0.5, 0.5)
+    panel.Size = UDim2.new(0, 720, 0, 280)  -- bigger panel
+    panel.Position = UDim2.new(0.5, 0, 0.5, 0)
+    panel.BackgroundColor3 = BLACK
+    panel.BackgroundTransparency = 1
+    panel.BorderSizePixel = 0
+    panel.Parent = loaderGui
+
+    local panelCorner = Instance.new("UICorner")
+    panelCorner.CornerRadius = UDim.new(0, 16)
+    panelCorner.Parent = panel
+
+    local panelStroke = Instance.new("UIStroke")
+    panelStroke.Color = BLUE
+    panelStroke.Thickness = 2.5
+    panelStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+    panelStroke.Transparency = 1
+    panelStroke.Parent = panel
+
+    -- Title: "Thanks for using Opex Hub"
     local titleLabel = Instance.new("TextLabel")
-    titleLabel.Size = UDim2.new(1, 0, 0, 50)
-    titleLabel.Position = UDim2.new(0, 0, 0.22, 0)
+    titleLabel.Size = UDim2.new(1, -60, 0, 48)
+    titleLabel.Position = UDim2.new(0, 30, 0, 55)
     titleLabel.BackgroundTransparency = 1
-    titleLabel.Text = "OPEX HUB // INITIALIZING SYSTEM"
-    titleLabel.TextColor3 = Color3.fromRGB(0, 255, 100)
-    titleLabel.TextSize = 26
-    titleLabel.Font = Enum.Font.Code
-    titleLabel.Parent = bgFrame
+    titleLabel.Text = "Thanks for using Opex Hub"
+    titleLabel.TextColor3 = BLUE
+    titleLabel.TextSize = 34
+    titleLabel.Font = Enum.Font.GothamBold
+    titleLabel.TextXAlignment = Enum.TextXAlignment.Center
+    titleLabel.TextTransparency = 1
+    titleLabel.Parent = panel
 
-    -- Matrix Hacker Text Label
-    local hackerLabel = Instance.new("TextLabel")
-    hackerLabel.Size = UDim2.new(0.85, 0, 0.2, 0)
-    hackerLabel.Position = UDim2.new(0.075, 0, 0.35, 0)
-    hackerLabel.BackgroundTransparency = 1
-    hackerLabel.TextColor3 = Color3.fromRGB(0, 200, 70)
-    hackerLabel.TextSize = 15
-    hackerLabel.Font = Enum.Font.Code
-    hackerLabel.TextWrapped = true
-    hackerLabel.TextYAlignment = Enum.TextYAlignment.Top
-    hackerLabel.Parent = bgFrame
+    -- Subtitle: "LOADING"
+    local subtitleLabel = Instance.new("TextLabel")
+    subtitleLabel.Size = UDim2.new(1, -60, 0, 22)
+    subtitleLabel.Position = UDim2.new(0, 30, 0, 108)
+    subtitleLabel.BackgroundTransparency = 1
+    subtitleLabel.Text = "L O A D I N G"
+    subtitleLabel.TextColor3 = Color3.fromRGB(150, 150, 160)
+    subtitleLabel.TextSize = 14
+    subtitleLabel.Font = Enum.Font.Code
+    subtitleLabel.TextXAlignment = Enum.TextXAlignment.Center
+    subtitleLabel.TextTransparency = 1
+    subtitleLabel.Parent = panel
 
-    -- Loading Bar Outline
+    -- Loading bar outline
     local barOutline = Instance.new("Frame")
-    barOutline.Size = UDim2.new(0.6, 0, 0, 22)
-    barOutline.Position = UDim2.new(0.2, 0, 0.6, 0)
-    barOutline.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
-    barOutline.BorderSizePixel = 1
-    barOutline.BorderColor3 = Color3.fromRGB(0, 255, 100)
-    barOutline.Parent = bgFrame
+    barOutline.Size = UDim2.new(1, -80, 0, 14)
+    barOutline.Position = UDim2.new(0, 40, 0, 165)
+    barOutline.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
+    barOutline.BackgroundTransparency = 1
+    barOutline.BorderSizePixel = 0
+    barOutline.Parent = panel
 
-    -- Loading Bar Fill
+    local barOutlineCorner = Instance.new("UICorner")
+    barOutlineCorner.CornerRadius = UDim.new(1, 0)
+    barOutlineCorner.Parent = barOutline
+
+    local barOutlineStroke = Instance.new("UIStroke")
+    barOutlineStroke.Color = BLUE
+    barOutlineStroke.Thickness = 1.5
+    barOutlineStroke.Transparency = 1
+    barOutlineStroke.Parent = barOutline
+
+    -- Loading bar fill
     local barFill = Instance.new("Frame")
     barFill.Size = UDim2.new(0, 0, 1, 0)
-    barFill.BackgroundColor3 = Color3.fromRGB(0, 255, 100)
+    barFill.BackgroundColor3 = BLUE
     barFill.BorderSizePixel = 0
     barFill.Parent = barOutline
 
-    -- Percentage Text
+    local barFillCorner = Instance.new("UICorner")
+    barFillCorner.CornerRadius = UDim.new(1, 0)
+    barFillCorner.Parent = barFill
+
+    -- Percentage
     local percentLabel = Instance.new("TextLabel")
-    percentLabel.Size = UDim2.new(1, 0, 0, 30)
-    percentLabel.Position = UDim2.new(0, 0, 0.66, 0)
+    percentLabel.Size = UDim2.new(1, -60, 0, 22)
+    percentLabel.Position = UDim2.new(0, 30, 0, 195)
     percentLabel.BackgroundTransparency = 1
     percentLabel.Text = "0%"
-    percentLabel.TextColor3 = Color3.fromRGB(0, 255, 100)
-    percentLabel.TextSize = 22
+    percentLabel.TextColor3 = BLUE
+    percentLabel.TextSize = 16
     percentLabel.Font = Enum.Font.Code
-    percentLabel.Parent = bgFrame
+    percentLabel.TextXAlignment = Enum.TextXAlignment.Center
+    percentLabel.TextTransparency = 1
+    percentLabel.Parent = panel
 
-    -- Rapid Matrix Number Generator Loop
-    local isAnimating = true
-    task.spawn(function()
-        local hexChars = {"0","1","2","3","4","5","6","7","8","9","A","B","C","D","E","F","X","Y","Z"}
-        while isAnimating do
-            local line = ""
-            for i = 1, 140 do
-                line = line .. hexChars[math.random(1, #hexChars)] .. (i % 2 == 0 and " " or "")
-            end
-            hackerLabel.Text = line
-            task.wait(0.03)
-        end
-    end)
+    -- ═══════════════════════════════════════════════════════
+    -- FADE IN (0.6s)
+    -- ═══════════════════════════════════════════════════════
+    task.wait(0.2)
+    local fadeIn = TweenInfo.new(0.6, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+    TweenService:Create(panel, fadeIn, {BackgroundTransparency = 0.15}):Play()
+    TweenService:Create(panelStroke, fadeIn, {Transparency = 0}):Play()
+    TweenService:Create(barOutline, fadeIn, {BackgroundTransparency = 0}):Play()
+    TweenService:Create(barOutlineStroke, fadeIn, {Transparency = 0.5}):Play()
+    TweenService:Create(titleLabel, fadeIn, {TextTransparency = 0}):Play()
+    TweenService:Create(subtitleLabel, fadeIn, {TextTransparency = 0}):Play()
+    TweenService:Create(percentLabel, fadeIn, {TextTransparency = 0}):Play()
+    task.wait(0.6)
 
-    -- Rapid Progress Bar Animation (0 to 100%)
-    local steps = 50
-    local totalDuration = 1.6
+    -- ═══════════════════════════════════════════════════════
+    -- SLOWER LOADING BAR ANIMATION (0 → 100% in ~2.4 seconds)
+    -- ═══════════════════════════════════════════════════════
+    local steps = 60
+    local totalDuration = 2.4
     for i = 1, steps do
         local progress = i / steps
         barFill.Size = UDim2.new(progress, 0, 1, 0)
-        percentLabel.Text = "LOADING... " .. math.floor(progress * 100) .. "%"
+        percentLabel.Text = math.floor(progress * 100) .. "%"
         task.wait(totalDuration / steps)
     end
 
-    isAnimating = false
-    task.wait(0.15)
+    -- Hold at 100% briefly
+    task.wait(0.4)
+
+    -- ═══════════════════════════════════════════════════════
+    -- FADE OUT (0.6s)
+    -- ═══════════════════════════════════════════════════════
+    local fadeOut = TweenInfo.new(0.6, Enum.EasingStyle.Quad, Enum.EasingDirection.In)
+    TweenService:Create(panel, fadeOut, {BackgroundTransparency = 1}):Play()
+    TweenService:Create(panelStroke, fadeOut, {Transparency = 1}):Play()
+    TweenService:Create(barOutline, fadeOut, {BackgroundTransparency = 1}):Play()
+    TweenService:Create(barOutlineStroke, fadeOut, {Transparency = 1}):Play()
+    TweenService:Create(titleLabel, fadeOut, {TextTransparency = 1}):Play()
+    TweenService:Create(subtitleLabel, fadeOut, {TextTransparency = 1}):Play()
+    TweenService:Create(percentLabel, fadeOut, {TextTransparency = 1}):Play()
+    TweenService:Create(barFill, fadeOut, {BackgroundTransparency = 1}):Play()
+    TweenService:Create(bgFrame, fadeOut, {BackgroundTransparency = 1}):Play()
+    task.wait(0.7)
+
     loaderGui:Destroy()
 
     -- Load Target Script
     loadstring(game:HttpGet(hubUrl))()
 
 else
-    -- Black screen with white "GAME NOT SUPPORTED" text for 5 seconds
+    -- Game Not Supported screen
     local playerGui = player and player:FindFirstChild("PlayerGui")
     if playerGui then
         local unsupportedGui = Instance.new("ScreenGui")
         unsupportedGui.Name = "OpexHubUnsupported"
         unsupportedGui.Parent = playerGui
         unsupportedGui.ResetOnSpawn = false
+        unsupportedGui.IgnoreGuiInset = true
 
         local frame = Instance.new("Frame")
         frame.Size = UDim2.new(1, 0, 1, 0)
