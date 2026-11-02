@@ -1,109 +1,167 @@
 local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
+local RunService = game:GetService("RunService")
 
 local localPlayer = Players.LocalPlayer
 local playerGui = localPlayer:WaitForChild("PlayerGui")
 
--- Remove existing instance if running re-entry
+-- Remove previous instance to prevent overlapping
 if playerGui:FindFirstChild("UpdatingOverlay") then
     playerGui.UpdatingOverlay:Destroy()
 end
 
--- ScreenGui Setup (Full Screen 1:1)
+-- 1. ScreenGui Setup (True 1:1 Fullscreen)
 local screenGui = Instance.new("ScreenGui")
 screenGui.Name = "UpdatingOverlay"
 screenGui.ResetOnSpawn = false
-screenGui.IgnoreGuiInset = true -- Covers top topbar / safe area
+screenGui.IgnoreGuiInset = true
 screenGui.DisplayOrder = 999
 screenGui.Parent = playerGui
 
--- Background Frame
-local bg = Instance.new("Frame")
-bg.Size = UDim2.new(1, 0, 1, 0)
-bg.BackgroundColor3 = Color3.fromRGB(15, 23, 42) -- #0f172a
-bg.BorderSizePixel = 0
-bg.Parent = screenGui
+-- 2. Animated Background Image (ZIndex = 1)
+local bgImage = Instance.new("ImageLabel")
+bgImage.Size = UDim2.new(1, 0, 1, 0)
+bgImage.Position = UDim2.new(0, 0, 0, 0)
+bgImage.Image = "rbxassetid://10950346376" -- Anime background asset ID
+bgImage.ScaleType = Enum.ScaleType.Crop
+bgImage.BackgroundColor3 = Color3.fromRGB(10, 10, 18)
+bgImage.BorderSizePixel = 0
+bgImage.ZIndex = 1
+bgImage.Parent = screenGui
 
--- Main Container
+-- Subtle background breathing animation loop
+task.spawn(function()
+    local t = 0
+    while bgImage and bgImage.Parent do
+        t = t + RunService.RenderStepped:Wait()
+        local scale = 1 + math.sin(t * 0.5) * 0.02
+        bgImage.Size = UDim2.new(scale, 0, scale, 0)
+        bgImage.Position = UDim2.new((1 - scale)/2, 0, (1 - scale)/2, 0)
+    end
+end)
+
+-- Dark Gradient Overlay (ZIndex = 2)
+local gradientOverlay = Instance.new("Frame")
+gradientOverlay.Size = UDim2.new(1, 0, 1, 0)
+gradientOverlay.BackgroundColor3 = Color3.fromRGB(5, 5, 12)
+gradientOverlay.BackgroundTransparency = 0.35
+gradientOverlay.BorderSizePixel = 0
+gradientOverlay.ZIndex = 2
+gradientOverlay.Parent = bgImage
+
+-- 3. Center Glassmorphic Card Container (ZIndex = 3)
 local container = Instance.new("Frame")
-container.Size = UDim2.new(0, 400, 0, 200)
+container.Size = UDim2.new(0, 440, 0, 240)
 container.AnchorPoint = Vector2.new(0.5, 0.5)
-container.Position = UDim2.new(0.5, 0, 0.5, 0)
+container.Position = UDim2.new(0.5, 0, 0.6, 0)
 container.BackgroundTransparency = 1
-container.Parent = bg
+container.ZIndex = 3
+container.Parent = screenGui
 
--- Spinner Ring
+local panel = Instance.new("Frame")
+panel.Size = UDim2.new(1, 0, 1, 0)
+panel.BackgroundColor3 = Color3.fromRGB(15, 23, 42)
+panel.BackgroundTransparency = 0.3
+panel.BorderSizePixel = 0
+panel.ZIndex = 3
+panel.Parent = container
+
+local panelCorner = Instance.new("UICorner")
+panelCorner.CornerRadius = UDim.new(0, 20)
+panelCorner.Parent = panel
+
+local panelStroke = Instance.new("UIStroke")
+panelStroke.Thickness = 1.5
+panelStroke.Color = Color3.fromRGB(56, 189, 248)
+panelStroke.Transparency = 0.3
+panelStroke.Parent = panel
+
+-- Slide-in Entrance Animation
+local containerTween = TweenService:Create(
+    container,
+    TweenInfo.new(0.8, Enum.EasingStyle.Exponential, Enum.EasingDirection.Out),
+    { Position = UDim2.new(0.5, 0, 0.5, 0) }
+)
+containerTween:Play()
+
+-- 4. Glowing Neon Spinner (ZIndex = 4)
 local spinner = Instance.new("Frame")
-spinner.Size = UDim2.new(0, 48, 0, 48)
+spinner.Size = UDim2.new(0, 44, 0, 44)
 spinner.AnchorPoint = Vector2.new(0.5, 0)
-spinner.Position = UDim2.new(0.5, 0, 0, 0)
+spinner.Position = UDim2.new(0.5, 0, 0, 24)
 spinner.BackgroundTransparency = 1
+spinner.ZIndex = 4
 spinner.Parent = container
 
-local spinnerUIStroke = Instance.new("UIStroke")
-spinnerUIStroke.Thickness = 4
-spinnerUIStroke.Color = Color3.fromRGB(56, 189, 248) -- #38bdf8
-spinnerUIStroke.Parent = spinner
+local spinnerStroke = Instance.new("UIStroke")
+spinnerStroke.Thickness = 4
+spinnerStroke.Color = Color3.fromRGB(56, 189, 248)
+spinnerStroke.Parent = spinner
 
-local spinnerUICorner = Instance.new("UICorner")
-spinnerUICorner.CornerRadius = UDim.new(1, 0)
-spinnerUICorner.Parent = spinner
+local spinnerCorner = Instance.new("UICorner")
+spinnerCorner.CornerRadius = UDim.new(1, 0)
+spinnerCorner.Parent = spinner
 
--- Continuous Rotation
 task.spawn(function()
     while spinner and spinner.Parent do
-        spinner.Rotation = spinner.Rotation + 6
+        spinner.Rotation = (spinner.Rotation + 6) % 360
         task.wait(0.016)
     end
 end)
 
--- Title Label
+-- 5. Title Label (ZIndex = 4)
 local title = Instance.new("TextLabel")
-title.Size = UDim2.new(1, 0, 0, 36)
-title.Position = UDim2.new(0, 0, 0, 64)
+title.Size = UDim2.new(1, 0, 0, 32)
+title.Position = UDim2.new(0, 0, 0, 80)
 title.Text = "Script Updating"
 title.TextColor3 = Color3.fromRGB(248, 250, 252)
-title.TextSize = 24
-title.Font = Enum.Font.SourceSansBold
+title.TextSize = 22
+title.Font = Enum.Font.GothamBold
 title.BackgroundTransparency = 1
+title.ZIndex = 4
 title.Parent = container
 
--- Subtitle Label
+-- 6. Subtitle Label (ZIndex = 4)
 local subtitle = Instance.new("TextLabel")
 subtitle.Size = UDim2.new(1, 0, 0, 24)
-subtitle.Position = UDim2.new(0, 0, 0, 100)
-subtitle.Text = "THE SCRIPT IS UPDATING  
-IT MIGHT BE DONE IN 5 DAYS OR LESS"
+subtitle.Position = UDim2.new(0, 0, 0, 116)
+subtitle.Text = "Synchronizing assets and applying updates..."
 subtitle.TextColor3 = Color3.fromRGB(148, 163, 184)
-subtitle.TextSize = 15
-subtitle.Font = Enum.Font.SourceSans
+subtitle.TextSize = 14
+subtitle.Font = Enum.Font.GothamMedium
 subtitle.BackgroundTransparency = 1
+subtitle.ZIndex = 4
 subtitle.Parent = container
 
--- Progress Bar Background
+-- 7. Modern Neon Progress Bar (ZIndex = 4)
 local barBg = Instance.new("Frame")
-barBg.Size = UDim2.new(1, 0, 0, 6)
-barBg.Position = UDim2.new(0, 0, 0, 145)
+barBg.Size = UDim2.new(0.85, 0, 0, 8)
+barBg.AnchorPoint = Vector2.new(0.5, 0)
+barBg.Position = UDim2.new(0.5, 0, 0, 165)
 barBg.BackgroundColor3 = Color3.fromRGB(30, 41, 59)
 barBg.BorderSizePixel = 0
+barBg.ZIndex = 4
 barBg.Parent = container
 
 local barBgCorner = Instance.new("UICorner")
-barBgCorner.CornerRadius = UDim.new(0, 3)
+barBgCorner.CornerRadius = UDim.new(1, 0)
 barBgCorner.Parent = barBg
 
--- Progress Fill
 local fill = Instance.new("Frame")
-fill.Size = UDim2.new(0.3, 0, 1, 0)
+fill.Size = UDim2.new(0, 0, 1, 0)
 fill.BackgroundColor3 = Color3.fromRGB(56, 189, 248)
 fill.BorderSizePixel = 0
+fill.ZIndex = 5
 fill.Parent = barBg
 
 local fillCorner = Instance.new("UICorner")
-fillCorner.CornerRadius = UDim.new(0, 3)
+fillCorner.CornerRadius = UDim.new(1, 0)
 fillCorner.Parent = fill
 
--- Pulse Animation for Progress Bar
-local tweenInfo = TweenInfo.new(1, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true)
-local pulseTween = TweenService:Create(fill, tweenInfo, { BackgroundTransparency = 0.5 })
-pulseTween:Play()
+-- Smooth Loading Progress Animation (3.5 seconds)
+local progressTween = TweenService:Create(
+    fill,
+    TweenInfo.new(3.5, Enum.EasingStyle.Quart, Enum.EasingDirection.Out),
+    { Size = UDim2.new(1, 0, 1, 0) }
+)
+progressTween:Play()
