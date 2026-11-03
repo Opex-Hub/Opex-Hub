@@ -56,8 +56,6 @@ if placeId == 84332574190497 then
     hubUrl = "https://raw.githubusercontent.com/Opex-Hub/Opex-Hub/refs/heads/main/Opex%20Hub%20%7C%20%2B1%20wings%20for%20brainrots"
 elseif placeId == 123921593837160 then
     hubUrl = "https://raw.githubusercontent.com/Opex-Hub/Opex-Hub/refs/heads/main/Opex%20Hub%20%7C%20Climb%20And%20Jump%20Tower"
-elseif placeId == 142823291 then
-    hubUrl = "https://raw.githubusercontent.com/Opex-Hub/Opex-Hub/refs/heads/main/MM2"
 elseif placeId == 126884695634066 then
     hubUrl = "https://raw.githubusercontent.com/Opex-Hub/Opex-Hub/refs/heads/main/GROW%20A%20GARDEN"
 elseif placeId == 76838459031868 then
